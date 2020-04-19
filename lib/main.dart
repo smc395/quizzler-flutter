@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-//TODO: Step 2 - Import the rFlutter_Alert package here.
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'quiz_brain.dart';
 
 QuizBrain quizBrain = QuizBrain();
@@ -31,30 +31,62 @@ class QuizPage extends StatefulWidget {
 class _QuizPageState extends State<QuizPage> {
   List<Icon> scoreKeeper = [];
 
+  int userScore = 0;
+  String quizSize = quizBrain.getQuizBankSize().toString();
+
   void checkAnswer(bool userPickedAnswer) {
     bool correctAnswer = quizBrain.getCorrectAnswer();
-
     setState(() {
-      //TODO: Step 4 - Use IF/ELSE to check if we've reached the end of the quiz. If true, execute Part A, B, C, D.
-      //TODO: Step 4 Part A - show an alert using rFlutter_alert (remember to read the docs for the package!)
-      //HINT! Step 4 Part B is in the quiz_brain.dart
-      //TODO: Step 4 Part C - reset the questionNumber,
-      //TODO: Step 4 Part D - empty out the scoreKeeper.
-
-      //TODO: Step 5 - If we've not reached the end, ELSE do the answer checking steps below 👇
-      if (userPickedAnswer == correctAnswer) {
-        scoreKeeper.add(Icon(
-          Icons.check,
-          color: Colors.green,
-        ));
-      } else {
-        scoreKeeper.add(Icon(
-          Icons.close,
-          color: Colors.red,
-        ));
+      // if quiz is over, prompt user to reset
+      if (quizBrain.isFinished() == true) {
+        Alert(
+          context: context,
+          title: "Thanks for playing!",
+          desc: "You got $userScore out of $quizSize correct.",
+          /*buttons: [
+            DialogButton(
+              child: Text(
+                "Reset",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              color: Color.fromRGBO(0, 179, 134, 1.0),
+            ),
+            DialogButton(
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              color: Color.fromRGBO(0, 179, 134, 1.0),
+            )
+          ],*/
+        ).show();
+        quizBrain.resetQuiz();
+        userScore = 0;
+        scoreKeeper = [];
       }
-      quizBrain.nextQuestion();
-    });
+      // if quiz is not over, check user answer and move on.
+      else {
+        if (userPickedAnswer == correctAnswer) {
+          userScore++;
+          scoreKeeper.add(Icon(
+            Icons.check,
+            color: Colors.green,
+          ));
+        } else {
+          scoreKeeper.add(Icon(
+            Icons.close,
+            color: Colors.red,
+          ));
+        }
+        quizBrain.nextQuestion();
+      }
+    }); //end setState()
   }
 
   @override
@@ -64,7 +96,7 @@ class _QuizPageState extends State<QuizPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Expanded(
-          flex: 5,
+          flex: 4,
           child: Padding(
             padding: EdgeInsets.all(10.0),
             child: Center(
@@ -78,6 +110,19 @@ class _QuizPageState extends State<QuizPage> {
               ),
             ),
           ),
+        ),
+        Expanded(
+          child: Text(
+            'Question ' +
+                quizBrain.getQuestionNumber().toString() +
+                ' of ' +
+                quizBrain.getQuizBankSize().toString(),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white, fontSize: 15.0),
+          ),
+        ),
+        Row(
+          children: scoreKeeper,
         ),
         Expanded(
           child: Padding(
@@ -118,9 +163,6 @@ class _QuizPageState extends State<QuizPage> {
             ),
           ),
         ),
-        Row(
-          children: scoreKeeper,
-        )
       ],
     );
   }
